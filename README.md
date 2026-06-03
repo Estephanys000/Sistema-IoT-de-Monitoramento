@@ -45,11 +45,12 @@ Readme · MD
 Sistema de **Internet das Coisas (IoT)** voltado ao monitoramento contínuo de idosos e à detecção automatizada de quedas. Ao identificar aceleração superior a **3g** ou o acionamento manual do **botão de pânico**, o sistema dispara alertas automatizados via **WhatsApp (API CallMeBot)**, notificando familiares e cuidadores em tempo real.
  
 O projeto alinha-se ao **Objetivo de Desenvolvimento Sustentável 3 (ODS 3)** da Agenda 2030 da ONU — especificamente à meta 3.4, que visa reduzir em um terço a mortalidade prematura decorrente de acidentes até 2030.
+
+![Objetivos de Desenvolvimento Sustentável da ONU](Imagens/ODS.png)
  
 **Por que acelerômetro e não câmera?**  
 Soluções baseadas em visão computacional exigem câmeras, processamento de vídeo e levantam questões de privacidade que limitam sua adoção em residências. O acelerômetro MPU6050 detecta quedas a partir de dados de inércia bruta, sem comprometer a intimidade do monitorado, com custo muito inferior.
  
-![Objetivos de Desenvolvimento Sustentável da ONU](Imagens/ODS.png)
  
 ---
  
@@ -90,9 +91,14 @@ O sistema adota uma **arquitetura IoT descentralizada em camadas**:
                                 └─────────────────────────┘
 ```
  
+### Exemplo
+
+![Blocos Funcionais do Protótipo](Imagens/PR%C3%93TOTIPO.png)
+
+### Nossa estrutura
+
 ![Arquitetura do Sistema IoT](Imagens/ESTRUTURA%20DO%20NOSSO%20PROJETO.jpeg)
  
-![Blocos Funcionais do Protótipo](Imagens/PR%C3%93TOTIPO.png)
  
 ---
  
@@ -170,6 +176,7 @@ Cada dispositivo executa continuamente:
    {"id":"idoso_01","aceleracao":3.24,"panico":false}
    ```
 5. **Acionamento do buzzer** em modo intermitente (300ms) quando `aceleração > 3g` ou `pânico == true`
+
 ![Instâncias ESP32 simuladas no Wokwi](Imagens/INST%C3%82NCIAS.jpeg)
  
 ### 2. Tópicos MQTT
@@ -188,6 +195,7 @@ MQTT In → JSON Parser → ┬→ TratarDadosGrafana → InfluxDB Out
 ```
  
 ![Fluxo de processamento no Node-RED](Imagens/NODE-RED.jpeg)
+
  
 ### 4. Regra de detecção
  
@@ -203,7 +211,20 @@ if (panico === true || aceleracao > 3.0) {
 - **Measurement**: `dados_grafana`
 - **Fields**: `aceleracao` (double), `panico` (0 ou 1)
 - **Tag**: `id_idoso` ("idoso_01" ou "idoso_02")
+
 ![Dados armazenados no InfluxDB Cloud](Imagens/Influx-db.jpeg)
+ 
+---
+
+### 6. Dashboard (Grafana)
+ 
+- **URL**: `https://cleidelustosa.grafana.net`
+- Dois painéis de série temporal: **Aceleração** e **Botão de Pânico**
+- Dois gauges em tempo real exibindo os valores mais recentes
+- Filtro dinâmico por idoso via dropdown (`idoso_01` / `idoso_02`)
+- Janela de visualização configurável (padrão: últimos 15 minutos)
+
+<img src="Imagens/Grafana.jpeg" alt="Dashboard Grafana — aceleração e botão de pânico" width="700"/>
  
 ---
  
