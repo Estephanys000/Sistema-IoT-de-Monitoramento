@@ -1,0 +1,205 @@
+[
+    {
+        "id": "mqtt_aws_in",
+        "type": "mqtt in",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "Escuta Todos os Idosos",
+        "topic": "mackenzie/saude/+/dados",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "broker_hivemq_v2",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 40,
+        "wires": [
+            [
+                "json_aws_parser"
+            ]
+        ]
+    },
+    {
+        "id": "json_aws_parser",
+        "type": "json",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "Converte para Objeto",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 220,
+        "y": 120,
+        "wires": [
+            [
+                "javascript_decisao",
+                "9fd325f49ad765dd"
+            ]
+        ]
+    },
+    {
+        "id": "javascript_decisao",
+        "type": "function",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "Valida Queda e Pânico",
+        "func": "// Garante que o payload vindo do Wokwi seja tratado como um objeto JSON válido\nvar dados = (typeof msg.payload === 'string') ? JSON.parse(msg.payload) : msg.payload;\n\nvar panico = dados.panico;\nvar aceleracao = parseFloat(dados.aceleracao);\nvar idPaciente = dados.id;\n\n// Validação das Regras de Negócio de Queda ou Pânico\nif (panico === true || aceleracao > 3.0) {\n    var texto = \"\";\n    \n    if (idPaciente === \"idoso_01\") {\n        texto = \"🚨 ALERTA MACKENZIE: Emergência com o Sr. João (Idoso 01)! Queda ou botão de pânico acionado.\";\n    } else if (idPaciente === \"idoso_02\") {\n        texto = \"🚨 ALERTA MACKENZIE: Emergência com a Sra. Maria (Idoso 02)! Queda ou botão de pânico acionado.\";\n    } else {\n        texto = \"🚨 ALERTA MACKENZIE: Emergência com paciente desconhecido!\";\n    }\n    \n    // Entrega o texto puro exatamente como o nó verde do professor espera\n    msg.payload = texto; \n    return msg; // Passa adiante para o Delay / WhatsApp\n}\n\nreturn null; // Não faz nada se estiver tudo normal",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 80,
+        "wires": [
+            [
+                "891f19ba3b0bc414"
+            ]
+        ]
+    },
+    {
+        "id": "debug_console_aws",
+        "type": "debug",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "Console Alertas",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "891f19ba3b0bc414",
+        "type": "delay",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "20",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 600,
+        "y": 180,
+        "wires": [
+            [
+                "d080e99a952ee371"
+            ]
+        ]
+    },
+    {
+        "id": "d080e99a952ee371",
+        "type": "node-red-contrib-whatsapp-cmb-send-message",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "",
+        "credtype": "account",
+        "account": "7af25f132e21af03",
+        "text": "payload",
+        "phonenumbervalue": "",
+        "apikeyvalue": "",
+        "apikeyinputtypemessage": "msg",
+        "phonenumberinputtypemessage": "msg",
+        "inputtypemessage": "msg",
+        "rejectssl": false,
+        "x": 640,
+        "y": 260,
+        "wires": [
+            [
+                "debug_console_aws"
+            ]
+        ]
+    },
+    {
+        "id": "684d09f498808578",
+        "type": "influxdb out",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "influxdb": "4c8659f056f40614",
+        "name": "",
+        "measurement": "dados_grafana",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Mackenzie",
+        "bucket": "db_nodered_v2",
+        "x": 320,
+        "y": 280,
+        "wires": [],
+        "info": "const dados = msg.payload;\r\n\r\nmsg.payload = [\r\n    {\r\n        measurement: \"dados_grafana\",\r\n        tags: {\r\n            id_idoso: dados.id\r\n        },\r\n        fields: {\r\n            aceleracao: parseFloat(dados.aceleracao),\r\n            panico: dados.panico === true ? 1 : 0\r\n        }\r\n    }\r\n];\r\n\r\nreturn msg;"
+    },
+    {
+        "id": "9fd325f49ad765dd",
+        "type": "function",
+        "z": "fluxo_idosos_mackenzie_v2",
+        "name": "TratarDadosGrafana",
+        "func": "var dados = (typeof msg.payload === \"string\") \n    ? JSON.parse(msg.payload) \n    : msg.payload;\n\nvar acel = parseFloat(dados.aceleracao);\nvar panico = (dados.panico === true || dados.panico === \"true\") ? 1 : 0;\nvar id = String(dados.id);\n\nif (isNaN(acel)) return null;\n\nmsg.payload = [\n    [\n        { aceleracao: acel, panico: panico },\n        { id_idoso: id }\n    ]\n];\n\ndelete msg.tags;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 200,
+        "wires": [
+            [
+                "684d09f498808578"
+            ]
+        ]
+    },
+    {
+        "id": "broker_hivemq_v2",
+        "type": "mqtt-broker",
+        "name": "HiveMQ AWS",
+        "broker": "broker.hivemq.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "7af25f132e21af03",
+        "type": "node-red-contrib-whatsapp-cmb-account",
+        "name": "Cleide"
+    },
+    {
+        "id": "4c8659f056f40614",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "Conexão BD",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "https://us-east-1-1.aws.cloud2.influxdata.com",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "70d96460dccd5055",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-whatsapp-cmb": "1.0.3",
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    }
+]

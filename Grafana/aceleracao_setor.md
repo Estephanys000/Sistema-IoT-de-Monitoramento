@@ -1,0 +1,8 @@
+from(bucket: "db_nodered_v2")
+  |> range(start: -15m)
+  |> filter(fn: (r) => r._measurement == "dados_grafana")
+  |> filter(fn: (r) => r._field == "panico" or r._field == "id_idoso")
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> filter(fn: (r) => r.id_idoso == "${idoso}")
+  |> keep(columns: ["_time", "panico"])
+  |> rename(columns: {panico: "_value"})
