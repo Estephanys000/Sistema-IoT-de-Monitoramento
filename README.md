@@ -2,7 +2,7 @@
 
 raw
 Readme · MD
-# 🏥 Sistema IoT de Monitoramento e Alerta Automatizado para Quedas em Idosos
+# 🏥 Sistema IoT de Monitoramento e Alerta Automatizado para Quedas de Idosos
  
 > Projeto acadêmico desenvolvido na **Universidade Presbiteriana Mackenzie** — Faculdade de Computação e Informática (2026)
  
@@ -89,10 +89,6 @@ O sistema adota uma **arquitetura IoT descentralizada em camadas**:
                                 │  (filtro dinâmico/idoso) │
                                 └─────────────────────────┘
 ```
- 
-### Exemplo
-
-![Blocos Funcionais do Protótipo](Imagens/PR%C3%93TOTIPO.png)
 
 ### Nossa estrutura
 
