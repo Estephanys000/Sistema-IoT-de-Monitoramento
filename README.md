@@ -21,7 +21,6 @@ Readme · MD
 | Recurso | Link |
 |---|---|
 | 📹 Vídeo de demonstração (YouTube) | [https://www.youtube.com/watch?v=vbAUZe5c70E](https://www.youtube.com/watch?v=vbAUZe5c70E) |
-| 💻 Repositório (GitHub) | [https://github.com/Estephanys000/Sistema-IoT-de-Monitoramento](https://github.com/Estephanys000/Sistema-IoT-de-Monitoramento) |
  
 ---
  
